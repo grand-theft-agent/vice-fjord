@@ -138,7 +138,7 @@ På `https://byen.hackaton.dev`, alltid med crewkoden i headeren `X-Crew` (eller
 | `GET /kjoringer/:id/kart` | Kartet til byvisningen: kjøretøyene med spor, markørene og gatene agenten vet er stengt (første gang også gatenettet) |
 | `GET /kjoringer` | Crewets siste 50 kjøringer, nyeste først. Byvisningen bruker den |
 | `POST /mcp/:oppdrag` | De samme verktøyene over MCP |
-| `DELETE /mcp/:oppdrag` med `Mcp-Session-Id` | Avslutter MCP-økten og avbryter kjøringen, som `avbryt` |
+| `DELETE /mcp/:oppdrag` med `Mcp-Session-Id` | Avslutter MCP-økten og avbryter kjøringen, som `avbryt`. Inne i økten gjør verktøyene `avbryt_forsok` og `nytt_forsok` det samme, og `nytt_forsok` starter oppdraget på nytt |
 
 ```bash
 BYEN=https://byen.hackaton.dev; CREW=<crewkoden>
@@ -206,8 +206,9 @@ Den siste er for Cursor (`.cursor/mcp.json`). Crewkoden står i adressen (`?crew
 MCP-klienter kan sette headere. Et merke på kjøringen går også i adressen: `/mcp/kureren?crew=<crewkoden>&merke=codex-v2`.
 Be agenten oppgi modellen og tokenforbruket i `meld_ferdig` (`modell`, `tokens_inn`, `tokens_ut`, `kostnad_usd`),
 så juryen ser hva kjøringen kostet. Det teller ikke i Respect.
-Gikk agenten seg vill, avbryt kjøringen med «Avbryt» i byvisningen og koble til på nytt (`/mcp` i Claude Code):
-den nye tilkoblingen er et nytt forsøk, og byvisningen bytter til det selv.
+Gikk agenten seg vill, be den starte på nytt: MCP-økten har verktøyene `nytt_forsok` (avbryter kjøringen og starter
+oppdraget på nytt i samme økt) og `avbryt_forsok` (bare avbryter). Den avbrutte kjøringen blir `AVBRUTT` og teller ikke
+på tavlen, og byvisningen bytter selv til det nye forsøket. Den skjulte ruten kan ikke startes på nytt.
 Guardrails i et agentverktøy bor i instruksfilene (`CLAUDE.md`, Cursor-reglene) og i hooks.
 
 ## Regel 4 og den skjulte ruten
