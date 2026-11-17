@@ -152,6 +152,15 @@ async function main() {
   if (!start.ok) throw new Error(start.data.feil);
   const { kjoring, navn, sms } = start.data;
 
+  // Ctrl-C avbryter kjøringen i byen også, så den ikke står som «pågår». Den blir AVBRUTT og teller
+  // ikke på tavlen; neste `npm run agent` er et nytt forsøk. Ctrl-C to ganger stopper med en gang.
+  process.once('SIGINT', async () => {
+    console.log(gul(`\n  Avbryter kjøring ${kjoring} …`));
+    const { ok, data } = await byen('POST', `/kjoringer/${kjoring}/avbryt`);
+    console.log(ok ? gul(`  ══ ${data.status} ══  teller ikke på tavlen`) : oransje(`  ✖ ${data.feil}`));
+    process.exit(130);
+  });
+
   // Verktøyene kommer fra byen, aldri hardkodet. Da virker agenten på alle oppdrag.
   const v = await byen('GET', `/kjoringer/${kjoring}/verktoy?format=anthropic`);
   if (!v.ok) throw new Error(v.data.feil);

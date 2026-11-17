@@ -38,6 +38,7 @@ Agenten skriver hvert verktøykall, hver stjerne (🚨 ⭐) og til slutt status,
 Forbruket fra hvert modellkall følger med neste verktøykall til byen, så byvisningen og tavlen viser hva kjøringen kostet.
 Sett `MERKE=v3 guardrails` i `.env` (høyst 40 tegn), så kjenner dere igjen kjøringen i byvisningen og på tavlen.
 Den stopper etter 50 runder med modellen (`MAX_ITERASJONER` i `.env`); oppdragene trenger rundt 30 kall.
+Ctrl-C avbryter kjøringen i byen også: den blir `AVBRUTT`, teller ikke på tavlen, og neste kjøring er et nytt forsøk.
 Se etter 🛡️ i `agent/node/agent.js` og `agent/python/agent.py`: der hører guardrails hjemme.
 
 ## Byvisningen
@@ -57,6 +58,9 @@ limousinen, bergingsbilen eller helikopteret) står på et sted og kjører langs
 taues og hendelser er markører på kartet, og gatene agenten har lest om i trafikkmeldingene, vises som
 stengt. En stjerne gir sirene der den kom. Nederst på kartet står det siste kallet i én setning.
 «Spill av» viser en ferdig kjøring kall for kall igjen.
+
+Starter agenten et nytt forsøk, bytter byvisningen til det med en gang, også når dere ser på en eldre kjøring.
+«Avbryt» (to klikk) stopper kjøringen som pågår: den blir `AVBRUTT` og teller ikke på tavlen.
 
 Byvisningen er en måte å se byen på, som tavlen. Dere står fritt til å lage deres egen visning, for eksempel en 3D-kjøring gjennom byen, med dataene fra API-et: `GET /kjoringer`, `GET /kjoringer/:id` og `GET /kjoringer/:id/kart` (med gatenettet og koordinatene).
 
@@ -129,10 +133,12 @@ På `https://byen.hackaton.dev`, alltid med crewkoden i headeren `X-Crew` (eller
 | `POST /kjoringer/:id/kall/:verktoy` `{…}` | Ett verktøykall: `resultat`, `nye_stjerner`, `stjerner`, `klokke`, `status` |
 | `POST /kjoringer/:id/ferdig` `{"rapport":"…"}` | Meld fra. Byen sjekker jobben, regner Respect og låser kjøringen. Valgfritt: `modell`, `tokens_inn`, `tokens_ut`, `kostnad_usd` |
 | `POST /kjoringer/:id/forbruk` `{"modell":"…","inn":1200,"ut":80}` | Tokenforbruket for ett modellkall. Byen legger sammen og regner om til dollar. Teller ikke i Respect. Samme forbruk kan i stedet følge med et verktøykall i headeren `X-Forbruk` (en liste), så det ikke blir en egen forespørsel |
+| `POST /kjoringer/:id/avbryt` | Avbryt en kjøring som pågår (agenten hang eller gikk i ring). Den blir `AVBRUTT` og teller ikke på tavlen; neste forsøk er en ny kjøring. En ferdig kjøring er låst |
 | `GET /kjoringer/:id` | Status, stjernene, Respect og loggen |
 | `GET /kjoringer/:id/kart` | Kartet til byvisningen: kjøretøyene med spor, markørene og gatene agenten vet er stengt (første gang også gatenettet) |
 | `GET /kjoringer` | Crewets siste 50 kjøringer, nyeste først. Byvisningen bruker den |
 | `POST /mcp/:oppdrag` | De samme verktøyene over MCP |
+| `DELETE /mcp/:oppdrag` med `Mcp-Session-Id` | Avslutter MCP-økten og avbryter kjøringen, som `avbryt` |
 
 ```bash
 BYEN=https://byen.hackaton.dev; CREW=<crewkoden>
@@ -200,6 +206,8 @@ Den siste er for Cursor (`.cursor/mcp.json`). Crewkoden står i adressen (`?crew
 MCP-klienter kan sette headere. Et merke på kjøringen går også i adressen: `/mcp/kureren?crew=<crewkoden>&merke=codex-v2`.
 Be agenten oppgi modellen og tokenforbruket i `meld_ferdig` (`modell`, `tokens_inn`, `tokens_ut`, `kostnad_usd`),
 så juryen ser hva kjøringen kostet. Det teller ikke i Respect.
+Gikk agenten seg vill, avbryt kjøringen med «Avbryt» i byvisningen og koble til på nytt (`/mcp` i Claude Code):
+den nye tilkoblingen er et nytt forsøk, og byvisningen bytter til det selv.
 Guardrails i et agentverktøy bor i instruksfilene (`CLAUDE.md`, Cursor-reglene) og i hooks.
 
 ## Regel 4 og den skjulte ruten

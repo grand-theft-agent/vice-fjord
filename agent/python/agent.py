@@ -207,6 +207,13 @@ def main() -> None:
             stoppet = f"Stoppet etter {MAX_ITERASJONER} runder (MAX_ITERASJONER)."
     except IngenBy:
         raise
+    except KeyboardInterrupt:
+        # Ctrl-C avbryter kjøringen i byen også, så den ikke står som «pågår». Den blir AVBRUTT og
+        # teller ikke på tavlen; neste kjøring av agenten er et nytt forsøk.
+        print(gul(f"\n  Avbryter kjøring {kjoring} …"))
+        ok, data = byen("POST", f"/kjoringer/{kjoring}/avbryt")
+        print(gul(f"  ══ {data['status']} ══  teller ikke på tavlen") if ok else oransje(f"  ✖ {data['feil']}"))
+        sys.exit(130)
     except Exception as e:
         stoppet = forklar(e)
     if stoppet:
