@@ -1,0 +1,15 @@
+{
+  "name": "vice-fjord",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Grand Theft Agent: eksempelagenten mot byen Vice Fjord på byen.hackaton.dev",
+  "engines": { "node": ">=20.12" },
+  "scripts": {
+    "agent": "node agent/node/agent.js",
+    "sjekk": "node agent/node/sjekk.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.1.0"
+  }
+}
