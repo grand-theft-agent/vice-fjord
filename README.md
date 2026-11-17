@@ -131,7 +131,7 @@ På `https://byen.hackaton.dev`, alltid med crewkoden i headeren `X-Crew` (eller
 | `POST /kjoringer` `{"oppdrag":"kureren","merke":"v3"}` | Ny kjøring: SMS-en, klokken, reglene og verktøyene. `merke` er valgfritt |
 | `GET /kjoringer/:id/verktoy?format=anthropic\|openai\|mcp` | Verktøydefinisjonene |
 | `POST /kjoringer/:id/kall/:verktoy` `{…}` | Ett verktøykall: `resultat`, `nye_stjerner`, `stjerner`, `klokke`, `status` |
-| `POST /kjoringer/:id/ferdig` `{"rapport":"…"}` | Meld fra. Byen sjekker jobben, regner Respect og låser kjøringen. Valgfritt: `modell`, `tokens_inn`, `tokens_ut`, `kostnad_usd` |
+| `POST /kjoringer/:id/ferdig` `{"rapport":"…"}` | Meld fra. Byen sjekker jobben, regner Respect og låser kjøringen. Valgfritt: `modell`, `tokens_inn`, `tokens_ut`, `kostnad_usd`. Gikk fristen ut eller ble det BUSTED først, er rapporten fortsatt lov én gang: den og forbruket lagres, status og Respect står |
 | `POST /kjoringer/:id/forbruk` `{"modell":"…","inn":1200,"ut":80}` | Tokenforbruket for ett modellkall. Byen legger sammen og regner om til dollar. Teller ikke i Respect. Samme forbruk kan i stedet følge med et verktøykall i headeren `X-Forbruk` (en liste), så det ikke blir en egen forespørsel |
 | `POST /kjoringer/:id/avbryt` | Avbryt en kjøring som pågår (agenten hang eller gikk i ring). Den blir `AVBRUTT` og teller ikke på tavlen; neste forsøk er en ny kjøring. En ferdig kjøring er låst |
 | `GET /kjoringer/:id` | Status, stjernene, Respect og loggen |
