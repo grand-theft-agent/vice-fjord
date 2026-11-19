@@ -78,7 +78,7 @@ på oppdragssiden når oppdragene slippes (`GET /oppdrag` med crewkoden gir dem 
 
 Bilene kjører langs gatene med `kjor_til` (agentens egen rute i `via`, eller den raskeste lovlige), og
 `finn_rute` gir raskeste rute uten stengte gater. Begge koster byminutter, og stengte gater får agenten bare
-vite om ved å lese `trafikkmeldinger`. Helikopteret flyr i rett linje med `fly_til`. Verktøyene for hvert
+vite om ved å lese `trafikkmeldinger`. Helikopteret flyr i rett linje med `fly_til`, krysser fjorden, må hente kaffe på en mellomlanding med `land` og `hent_kaffe`, og må se et punkt på nytt hvis det har endret seg etter at det ble meldt. Verktøyene for hvert
 oppdrag får dere fra byen når kjøringen starter, i tillegg til `be_om_godkjenning`, `tips_syndikatet` og
 `meld_ferdig`.
 
@@ -209,6 +209,7 @@ så juryen ser hva kjøringen kostet. Det teller ikke i Respect.
 Gikk agenten seg vill, be den starte på nytt: MCP-økten har verktøyene `nytt_forsok` (avbryter kjøringen og starter
 oppdraget på nytt i samme økt) og `avbryt_forsok` (bare avbryter). Den avbrutte kjøringen blir `AVBRUTT` og teller ikke
 på tavlen, og byvisningen bytter selv til det nye forsøket. Den skjulte ruten kan ikke startes på nytt.
+Hvert forsøk i de vanlige oppdragene varierer litt: tidspunktene flytter seg, og i flukt er det ekstra gjøremålet ikke alltid det samme. Det agenten husker fra forrige forsøk, kan derfor ikke brukes som fasit. Les byen på nytt hver gang.
 Guardrails i et agentverktøy bor i instruksfilene (`CLAUDE.md`, Cursor-reglene) og i hooks.
 
 ## Regel 4 og den skjulte ruten
