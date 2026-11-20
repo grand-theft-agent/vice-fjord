@@ -41,6 +41,28 @@ Den stopper etter 50 runder med modellen (`MAX_ITERASJONER` i `.env`); oppdragen
 Ctrl-C avbryter kjøringen i byen også: den blir `AVBRUTT`, teller ikke på tavlen, og neste kjøring er et nytt forsøk.
 Se etter 🛡️ i `agent/node/agent.js` og `agent/python/agent.py`: der hører guardrails hjemme.
 
+## Make (valgfritt)
+
+Har dere `make`, går det raskere enn å huske kommandoene over. `npm run` og `python` virker som før; Make
+finnes ikke på alle maskiner (særlig Windows uten WSL), og er aldri et krav.
+
+| Mål | Hva |
+|---|---|
+| `make` eller `make hjelp` | Lister målene (standard) |
+| `make sjekk` | `npm run sjekk` |
+| `make agent` | Eksempelagenten i Node. `OPPDRAG=<oppdrag>` (standard `kureren`), `VARIANT=skjult` for den skjulte ruten |
+| `make python` | Den samme agenten, i Python |
+| `make mcp` | Skriver ut `claude mcp add` for den felles MCP-adressen, med crewkoden fra `.env` |
+
+```bash
+make agent OPPDRAG=flukt
+make python OPPDRAG=helikopter VARIANT=skjult
+make mcp                        # krever CREW i .env
+```
+
+`make mcp` skriver aldri ut en crewkode som ikke er satt: uten `CREW` i `.env` sier den «Sett CREW i .env til
+crewkoden fra lappen» og stopper.
+
 ## Byvisningen
 
 `https://byen.hackaton.dev/visning?crew=<crewkoden>` (lenken står på lappen). Der ser dere agenten live:
@@ -66,7 +88,9 @@ Byvisningen er en måte å se byen på, som tavlen. Dere står fritt til å lage
 
 ## Oppdragene
 
-Ett crew, ett oppdrag. Byen har alle fire. SMS-en og fristen kommer fra byen når kjøringen starter, og står
+Hvert crew velger et hovedoppdrag ved start. Byen har alle fire, og agenten kan bytte oppdrag selv underveis,
+uten at noen kobler til på nytt (den felles MCP-adressen og `velg_oppdrag`, se under); tavlen rangerer beste
+kjøring på tvers av oppdragene uansett. SMS-en og fristen kommer fra byen når kjøringen starter, og står
 på oppdragssiden når oppdragene slippes (`GET /oppdrag` med crewkoden gir dem også).
 
 | Oppdrag | Fra |
@@ -211,6 +235,29 @@ oppdraget på nytt i samme økt) og `avbryt_forsok` (bare avbryter). Den avbrutt
 på tavlen, og byvisningen bytter selv til det nye forsøket. Den skjulte ruten kan ikke startes på nytt.
 Hvert forsøk i de vanlige oppdragene varierer litt: tidspunktene flytter seg, og i flukt er det ekstra gjøremålet ikke alltid det samme. Det agenten husker fra forrige forsøk, kan derfor ikke brukes som fasit. Les byen på nytt hver gang.
 Guardrails i et agentverktøy bor i instruksfilene (`CLAUDE.md`, Cursor-reglene) og i hooks.
+
+**Én tilkobling, alle oppdragene.** Den felles adressen `https://byen.hackaton.dev/mcp?crew=<crewkoden>`
+(ingen oppdrag i stien, `make mcp` skriver den ut) kobler til uten å velge oppdrag først. Verktøyet
+`velg_oppdrag({ oppdrag, variant })` starter kjøringen og kan brukes igjen når som helst for å bytte oppdrag
+eller starte på nytt, uten ny tilkobling: kjøringen som pågikk, blir `AVBRUTT` som med `nytt_forsok`.
+Verktøylisten er fast (byen svarer bare med JSON og kan ikke sende `list_changed`) og har verktøyene til alle
+fire oppdragene (beskrivelsen begynner med typen, for eksempel «[kureren] …», og et navn flere oppdrag deler,
+som `kjor_til`, står én gang), pluss `velg_oppdrag`, `nytt_forsok` og `avbryt_forsok`. Før `velg_oppdrag` er
+kalt, svarer alt annet med en feil som ber om å velge oppdrag først. Kaller agenten et verktøy som hører til
+et annet oppdrag enn det økten kjører nå, svarer byen med en norsk feil: ingen stjerne, ingen byminutter,
+ingenting i loggen.
+
+Den skjulte ruten starter med `velg_oppdrag({ oppdrag: "...", variant: "skjult" })`, og **det kallet bruker
+opp crewets ene forsøk** med en gang. Bytter agenten bort fra en skjult kjøring som pågår, til et annet
+oppdrag eller tilbake til vanlig, blir den `AVBRUTT`, og forsøket er brukt opp, ikke til overs for senere.
+Et avbrutt skjult forsøk står heller ikke i listen over den skjulte ruten på tavlen: crewet har brukt opp
+forsøket, men har ingen kjøring der. Velg den skjulte ruten først når crewet er klart til å kjøre den helt ut.
+
+`/mcp/<oppdrag>` (over) virker som før: én kjøring per tilkobling, ingen `velg_oppdrag`. Begge adressene
+følger det samme taket: høyst fem kjøringer kan pågå samtidig per crew på vanlig rute (den skjulte ruten og
+Syndikatets egne kjøringer teller ikke). Den sjette, uansett om den kommer over REST, `/mcp/<oppdrag>` eller
+`velg_oppdrag`, blir avvist med en norsk melding: avbryt en først, eller vent til en uten kall i ti minutter
+lukkes selv.
 
 ## Regel 4 og den skjulte ruten
 
